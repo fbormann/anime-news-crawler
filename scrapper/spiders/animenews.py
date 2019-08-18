@@ -1,11 +1,13 @@
 import scrapy
 import logging
+from models.News import News
 
 
 class AnimeNews(scrapy.Spider):
     name = 'animenews'
-    start_urls = ["https://www.animenewsnetwork.com/news/"]
+    start_urls = ["https://www.animenewsnetwork.com/news"]
     logger = logging.getLogger(__name__)
+    news_obj = News()  # use a single instance for better memory management
 
     # allowed_domains = ["animenewsnetwork.com"]
 
@@ -14,13 +16,35 @@ class AnimeNews(scrapy.Spider):
 
         amount_of_news_processed = 0
         for news_item in main_feed.css('div.news.herald'):
-            self.logger.debug(news_item.get())
             comment_element = news_item.css('div.comments')
-            self.logger.debug(comment_element.get())
             title_element = news_item.css("div.wrap")
-            self.logger.debug(title_element.get())
-            self.logger.debug("title text: " + str(news_item.css("div.wrap h3:first-of-type > a::text").get()))
+            self.news_obj.title = str(news_item.css("div.wrap h3:first-of-type > a::text").get())
             article_link_element = news_item.css('div.thumbnail > a::attr(href)')
-            self.logger.debug(article_link_element.get())
             amount_of_news_processed += 1
-            self.logger.debug(amount_of_news_processed)
+            article_link = self.start_urls[0] + article_link_element.get()
+
+            self.news_obj.url = article_link
+            yield response.follow(self.news_obj.url, callback=self.parse_article)
+
+    def parse_article(self, response):
+        main_content_div = response.css("div.meat")
+
+        paragraph_count = 0
+        word_count = 0
+        sentence_count = 0
+        for paragraph in main_content_div.css("p"):
+            print(paragraph.get())
+            paragraph_children_text = paragraph.css("*::text")
+
+            paragraph_text = []
+            for tag_text in paragraph_children_text:
+                paragraph_text.append(tag_text.get())
+            paragraph_text = " ".join(paragraph_text)
+            word_count += len(paragraph_text.split())
+            sentence_count += len(paragraph_text.split("."))
+            paragraph_count += 1
+
+        self.news_obj.word_count = word_count
+        self.news_obj.paragraph_count = paragraph_count
+        self.news_obj.phrase_count = sentence_count
+        self.news_obj.portal_name = self.start_urls[0]
