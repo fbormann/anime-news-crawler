@@ -21,14 +21,14 @@ class AnimeNews(scrapy.Spider):
         amount_of_news_processed = 0
         for news_item in main_feed.css('div.news.herald'):
             comment_element_text = news_item.css('div.comments a::text')
-            comment_amount = re.findall("[\d]*", comment_element_text.get())
-            self.news_obj.comment_amount = int(comment_amount[0])
+            comment_amount_text_match = re.findall("[\d]*", comment_element_text.get())
+            self.news_obj.comment_amount = int(comment_amount_text_match[0])
             self.news_obj.title = str(news_item.css("div.wrap h3:first-of-type > a::text").get())
-            article_link_element = news_item.css('div.thumbnail > a::attr(href)')
-            amount_of_news_processed += 1
-            article_link = self.start_urls[0] + article_link_element.get()
+            article_link = self.start_urls[0] + news_item.css('div.thumbnail > a::attr(href)').get()
 
             self.news_obj.url = article_link
+            amount_of_news_processed += 1
+            self.logger.info(amount_of_news_processed)
             yield response.follow(self.news_obj.url, callback=self.parse_article)
 
     def parse_article(self, response):
@@ -38,7 +38,6 @@ class AnimeNews(scrapy.Spider):
         word_count = 0
         sentence_count = 0
         for paragraph in main_content_div.css("p"):
-            print(paragraph.get())
             paragraph_children_text = paragraph.css("*::text")
 
             paragraph_text = []
