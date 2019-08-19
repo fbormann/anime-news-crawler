@@ -1,6 +1,9 @@
 import scrapy
 import logging
 from models.News import News
+import re
+from db_interface.NewsInterface import NewsDBInterface
+from datetime import date
 
 
 class AnimeNews(scrapy.Spider):
@@ -8,6 +11,7 @@ class AnimeNews(scrapy.Spider):
     start_urls = ["https://www.animenewsnetwork.com/news"]
     logger = logging.getLogger(__name__)
     news_obj = News()  # use a single instance for better memory management
+    news_db_interface = NewsDBInterface()
 
     # allowed_domains = ["animenewsnetwork.com"]
 
@@ -16,8 +20,9 @@ class AnimeNews(scrapy.Spider):
 
         amount_of_news_processed = 0
         for news_item in main_feed.css('div.news.herald'):
-            comment_element = news_item.css('div.comments')
-            title_element = news_item.css("div.wrap")
+            comment_element_text = news_item.css('div.comments a::text')
+            comment_amount = re.findall("[\d]*", comment_element_text.get())
+            self.news_obj.comment_amount = int(comment_amount[0])
             self.news_obj.title = str(news_item.css("div.wrap h3:first-of-type > a::text").get())
             article_link_element = news_item.css('div.thumbnail > a::attr(href)')
             amount_of_news_processed += 1
@@ -48,3 +53,5 @@ class AnimeNews(scrapy.Spider):
         self.news_obj.paragraph_count = paragraph_count
         self.news_obj.phrase_count = sentence_count
         self.news_obj.portal_name = self.start_urls[0]
+        self.news_obj.publish_date = date.today()
+        self.news_db_interface.insert_item(self.news_obj)
