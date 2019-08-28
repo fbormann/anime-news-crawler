@@ -29,5 +29,7 @@ class PostgresPipeline(object):
 
     @db_session
     def process_item(self, item, spider):
-        News(**item)
+        if News.select(lambda n: n.url == item["url"]).count() == 0:
+            # insert item
+            News(**item)
         return item
