@@ -1,8 +1,9 @@
-from dataclasses import dataclass
 from datetime import date
-from pony.orm import *
+
 import scrapy
-from settings import db
+from pony.orm import *
+
+from src.settings import db
 
 
 # I know it is a duplicate but it is necessary

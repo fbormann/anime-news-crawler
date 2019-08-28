@@ -4,22 +4,22 @@ from datetime import datetime
 
 import scrapy
 
-from db_interface.NewsInterface import NewsDBInterface
-from models.News import NewsItem
+from pony.orm import *
+from src.models.News import NewsItem, News
 
 
 class AnimeNews(scrapy.Spider):
     name = 'animenews'
     start_urls = ["https://www.animenewsnetwork.com/news"]
     logger = logging.getLogger(__name__)
-    news_db_interface = NewsDBInterface()
 
     custom_settings = {
         "ITEM_PIPELINES": {
-            'pipelines.PostgresPipeline.PostgresPipeline': 300
+            'src.pipelines.PostgresPipeline.PostgresPipeline': 300
         }
     }
 
+    @db_session
     def parse(self, response):
         main_feed = response.css('div.mainfeed-section')
 
@@ -29,10 +29,10 @@ class AnimeNews(scrapy.Spider):
             news_obj = NewsItem()  # use a single instance for better memory management
             news_obj["url"] = article_link
 
-            if self.news_db_interface.has_item(url=news_obj["url"]):
+            if News.select(lambda n: n.url == news_obj["url"]).count() > 0:
                 # there is no need to crawl the same article again
                 logging.info("this URL was already crawled: " + news_obj["url"])
-                return
+                continue
 
             comment_element_text = news_item.css('div.comments a::text')
             comment_amount_text_match = re.findall("[\d]*", comment_element_text.get())

@@ -1,7 +1,9 @@
 import os
-from models.News import News
-from models.News import db
+
 from pony.orm import *
+
+from src.models.News import News
+from src.models.News import db
 
 
 class PostgresPipeline(object):
