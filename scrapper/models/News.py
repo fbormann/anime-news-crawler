@@ -1,18 +1,29 @@
 from dataclasses import dataclass
 from datetime import date
+from pony.orm import *
+import scrapy
+
+db = Database()
 
 
-@dataclass
-class News:
-    title: str
-    portal_name: str
-    url: str
-    comment_amount: int
-    word_count: int
-    phrase_count: int
-    paragraph_count: int
-    publish_date: date
+# I know it is a duplicate but it is necessary
+class NewsItem(scrapy.Item):
+    title = scrapy.Field()
+    portal_name = scrapy.Field()
+    url = scrapy.Field()
+    comment_amount = scrapy.Field()
+    word_count = scrapy.Field()
+    phrase_count = scrapy.Field()
+    paragraph_count = scrapy.Field()
+    publish_date = scrapy.Field()
 
-    def __init__(self):
-        # because we don't necessarily want to have all fields initialized at the same time
-        pass
+
+class News(db.Entity):
+    title = Required(str)
+    portal_name = Required(str)
+    url = Required(str, unique=True)
+    comment_amount = Required(int)
+    word_count = Required(int)
+    phrase_count = Required(int)
+    paragraph_count = Required(int)
+    publish_date = Required(date)
