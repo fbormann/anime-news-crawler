@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from pony.orm import *
 import scrapy
-
-db = Database()
+from settings import db
 
 
 # I know it is a duplicate but it is necessary
