@@ -5,10 +5,10 @@ from datetime import datetime
 import scrapy
 
 from pony.orm import *
-from src.models.News import NewsItem, News
+from models.News import NewsItem, News
 
 
-class AnimeNews(scrapy.Spider):
+class AnimeNewsSpider(scrapy.Spider):
     name = 'animenews'
     start_urls = ["https://www.animenewsnetwork.com/news"]
     logger = logging.getLogger(__name__)

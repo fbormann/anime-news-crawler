@@ -3,7 +3,7 @@ from datetime import date
 import scrapy
 from pony.orm import *
 
-from src.settings import db
+from settings import db
 
 
 # I know it is a duplicate but it is necessary
